@@ -267,6 +267,35 @@ OPENAI_MODEL=gpt-4o-mini
 
 **日志文件：** `logs/rag.log`
 
+### 10. 内部演示前端（Streamlit Dashboard）
+
+```bash
+pip install -r requirements.txt
+streamlit run dashboard/app.py
+```
+
+浏览器访问：**http://localhost:8501**
+
+**演示登录账号（默认）：**
+
+| 用户名 | 密码 |
+|--------|------|
+| `admin` | `admin123` |
+
+可在 `.env` 中自定义：
+
+```env
+DEMO_USERNAME=admin
+DEMO_PASSWORD=admin123
+```
+
+**功能页面：**
+- **平台概览** — 医院 KPI 与数据流水线说明
+- **Clinical RAG 问答** — 双路检索智能问答
+- **系统说明** — 模块介绍
+
+> 仅供内部演示，不可用于生产环境。
+
 ## 数据库配置
 
 默认使用本地 SQLite，**无需安装 MySQL / Docker**。
@@ -298,6 +327,8 @@ medical-ai-platform/
 ├── analytics/
 ├── api/
 ├── dashboard/
+│   ├── app.py             # Streamlit 演示前端
+│   └── auth.py            # 演示登录
 ├── etl/
 │   ├── extract.py       # 数据抽取
 │   ├── transform.py     # 数据清洗与标准化
