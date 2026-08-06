@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# Data
+data/raw/
+data/processed/
+
+# Model
+models/
+
+# Vector database (root legacy)
+vector_store/
+
+# Knowledge base generated artifacts
+knowledge_base/processed_documents.json
+knowledge_base/document_embeddings.npy
+knowledge_base/vector_store/
+
+# SQLite database
+database/hospital.db
+warehouse/warehouse.db
+
+# IDE
+.vscode/
+
+# Logs
+*.log
+logs/*.log
+
+# Reports (generated)
+reports/*.html
+reports/*.csv
+reports/charts/

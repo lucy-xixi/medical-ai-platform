@@ -1,0 +1,30 @@
+# 医疗数据平台 - MySQL 服务
+# 用法: docker compose -f docker/docker-compose.yml up -d
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: medical_platform_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: medical_root
+      MYSQL_DATABASE: medical_platform
+      MYSQL_USER: medical
+      MYSQL_PASSWORD: medical_pass
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pmedical_root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
