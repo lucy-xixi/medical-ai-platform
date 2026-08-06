@@ -24,6 +24,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from analytics.hospital_kpi import analyze_hospital_kpi
 from analytics.warehouse_loader import load_warehouse_tables
 from dashboard.auth import DEFAULT_PASSWORD, DEFAULT_USERNAME, get_demo_credentials, verify_login
+from dashboard.overview_page import render_overview_page
+from dashboard.pipeline_page import render_pipeline_page
 from rag.clinical_rag import ask as rag_ask
 
 # ---------------------------------------------------------------------------
@@ -94,6 +96,10 @@ def load_kpi_data() -> pd.DataFrame:
 
 def main_dashboard() -> None:
     """登录后的主看板。"""
+    page_options = ["平台概览", "数据流水线", "Clinical RAG 问答", "系统说明"]
+    if "nav_page" not in st.session_state:
+        st.session_state.nav_page = page_options[0]
+
     # 侧边栏
     with st.sidebar:
         st.markdown(f"**欢迎，{st.session_state.get('username', '用户')}**")
@@ -101,9 +107,12 @@ def main_dashboard() -> None:
         st.markdown("**功能导航**")
         page = st.radio(
             "选择页面",
-            ["平台概览", "Clinical RAG 问答", "系统说明"],
+            page_options,
+            index=page_options.index(st.session_state.nav_page),
             label_visibility="collapsed",
+            key="sidebar_nav",
         )
+        st.session_state.nav_page = page
         st.markdown("---")
         if st.button("退出登录", use_container_width=True):
             st.session_state.authenticated = False
@@ -114,37 +123,13 @@ def main_dashboard() -> None:
     st.caption("Hospital Information Center · Internal Demo")
 
     if page == "平台概览":
-        render_overview()
+        render_overview_page(load_kpi_data())
+    elif page == "数据流水线":
+        render_pipeline_page()
     elif page == "Clinical RAG 问答":
         render_rag()
     else:
         render_docs()
-
-
-def render_overview() -> None:
-    """平台 KPI 概览。"""
-    st.subheader("平台概览")
-
-    kpi_df = load_kpi_data()
-    if not kpi_df.empty:
-        cols = st.columns(len(kpi_df))
-        for col, (_, row) in zip(cols, kpi_df.iterrows()):
-            col.metric(label=row["KPI"], value=f"{row['Value']:,}")
-
-    st.markdown("---")
-    st.markdown("#### 数据流水线")
-
-    pipeline_steps = [
-        ("1. OLTP 数据库", "database/hospital.db", "Synthetic EHR + ETL 入库"),
-        ("2. 数据质量", "quality/quality_report.py", "Completeness / Accuracy / Consistency"),
-        ("3. 数据仓库", "warehouse/warehouse.db", "Star Schema 星型模型"),
-        ("4. 临床分析", "analytics/analytics_report.py", "统计报表与 KPI"),
-        ("5. 知识库", "knowledge_base/vector_store/", "FAISS 临床指南检索"),
-        ("6. Clinical RAG", "rag/clinical_rag.py", "双路检索 + LLM 回答"),
-    ]
-
-    for step, path, desc in pipeline_steps:
-        st.markdown(f"**{step}** — `{path}`  \n{desc}")
 
 
 def render_rag() -> None:
