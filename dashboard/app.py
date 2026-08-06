@@ -77,6 +77,7 @@ def login_page() -> None:
             f"演示账号：`{DEFAULT_USERNAME}` / `{DEFAULT_PASSWORD}` "
             f"（可在 .env 中设置 DEMO_USERNAME / DEMO_PASSWORD）"
         )
+        st.caption("提示：浏览器 **刷新后会退出登录**，但本地数据库与报告文件不会丢失。")
 
 
 # ---------------------------------------------------------------------------
@@ -100,17 +101,20 @@ def main_dashboard() -> None:
     if "nav_page" not in st.session_state:
         st.session_state.nav_page = page_options[0]
 
-    # 侧边栏
+    # 侧边栏（nav_page 不可作为 widget key，否则按钮跳转无法赋值）
     with st.sidebar:
         st.markdown(f"**欢迎，{st.session_state.get('username', '用户')}**")
         st.markdown("---")
         st.markdown("**功能导航**")
+        current_page = st.session_state.nav_page
+        if current_page not in page_options:
+            current_page = page_options[0]
+            st.session_state.nav_page = current_page
         page = st.radio(
             "选择页面",
             page_options,
-            index=page_options.index(st.session_state.nav_page),
+            index=page_options.index(current_page),
             label_visibility="collapsed",
-            key="sidebar_nav",
         )
         st.session_state.nav_page = page
         st.markdown("---")
@@ -122,14 +126,18 @@ def main_dashboard() -> None:
     st.markdown("# Medical Data Intelligence Platform")
     st.caption("Hospital Information Center · Internal Demo")
 
-    if page == "平台概览":
-        render_overview_page(load_kpi_data())
-    elif page == "数据流水线":
-        render_pipeline_page()
-    elif page == "Clinical RAG 问答":
-        render_rag()
-    else:
-        render_docs()
+    try:
+        if page == "平台概览":
+            render_overview_page(load_kpi_data())
+        elif page == "数据流水线":
+            render_pipeline_page()
+        elif page == "Clinical RAG 问答":
+            render_rag()
+        else:
+            render_docs()
+    except Exception as exc:
+        st.error(f"页面加载出错: {exc}")
+        st.exception(exc)
 
 
 def render_rag() -> None:

@@ -18,6 +18,7 @@ from dashboard.pipeline_runner import (
     get_pipeline_status,
     get_warehouse_counts,
 )
+from dashboard.warehouse_view import render_star_schema_diagram
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
@@ -33,6 +34,8 @@ PIPELINE_STEPS = [
 
 def _navigate_to(page: str) -> None:
     st.session_state.nav_page = page
+    if page == "数据流水线":
+        st.session_state.pipeline_step = "1. 初始化数据库"
     st.rerun()
 
 
@@ -67,7 +70,7 @@ def render_overview_page(kpi_df: pd.DataFrame) -> None:
     with prog_col:
         st.progress(done_count / total_steps, text=f"已完成 {done_count} / {total_steps} 步")
     with action_col:
-        if st.button("打开数据流水线", type="primary", use_container_width=True):
+        if st.button("打开数据流水线", type="primary", use_container_width=True, key="btn_open_pipeline"):
             _navigate_to("数据流水线")
 
     step_cols = st.columns(3)
@@ -130,6 +133,15 @@ flowchart LR
                 use_container_width=True,
                 hide_index=True,
             )
+        else:
+            st.caption("数仓尚未构建")
+
+    with st.expander("查看星型数据仓库模型", expanded=True):
+        render_star_schema_diagram(compact=True)
+        if get_warehouse_counts():
+            st.caption("完整数据浏览请前往 **数据流水线 → 3. 构建数据仓库**。")
+        else:
+            st.warning("数仓尚未构建。请前往 **数据流水线 → 3. 构建数据仓库** 点击运行。")
 
     st.markdown("---")
 
@@ -163,7 +175,7 @@ flowchart LR
                 st.markdown(f"⏳ **{name}** — {hint}")
 
         if rag_ready:
-            if st.button("前往 RAG 问答", use_container_width=True):
+            if st.button("前往 RAG 问答", use_container_width=True, key="btn_goto_rag"):
                 _navigate_to("Clinical RAG 问答")
         elif ready_count >= 3:
             st.caption("完成知识库构建后即可使用 RAG 问答")
